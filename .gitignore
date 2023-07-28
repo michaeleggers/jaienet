@@ -3,3 +3,7 @@ generate.jai
 **/*.pdb
 **/.build/*
 **/win/*
+**/*.vs/*
+msvc.bat
+Command Prompt.lnk
+desktop.ini
