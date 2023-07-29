@@ -1,10 +1,10 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate_simple.jai
+// jai ./generate_simple.jai
 //
 
-#import "Socket";
+
 
 ENET_VERSION_MAJOR :: 1;
 ENET_VERSION_MINOR :: 3;
@@ -15,6 +15,13 @@ ENET_HOST_BROADCAST :: 0xFFFFFFFF;
 ENET_PORT_ANY :: 0;
 
 size_t :: u64;
+
+SOCKET :: u64;
+
+fd_set :: struct {
+    fd_count: u32;
+    fd_array: [64] SOCKET;
+}
 
 ENetSocket :: SOCKET;
 
@@ -1006,9 +1013,20 @@ enet_protocol_command_size :: (unknown0: enet_uint8) -> size_t #foreign enet;
 
 #import "Basic"; // For assert
 
+winmm :: #system_library "winmm";
+ws2_32 :: #system_library "ws2_32";
 enet :: #library,no_dll "win/enet";
 
 #run {
+    {
+        instance: fd_set;
+        assert(((cast(*void)(*instance.fd_count)) - cast(*void)(*instance)) == 0, "fd_set.fd_count has unexpected offset % instead of 0", ((cast(*void)(*instance.fd_count)) - cast(*void)(*instance)));
+        assert(size_of(type_of(fd_set.fd_count)) == 4, "fd_set.fd_count has unexpected size % instead of 4", size_of(type_of(fd_set.fd_count)));
+        assert(((cast(*void)(*instance.fd_array)) - cast(*void)(*instance)) == 8, "fd_set.fd_array has unexpected offset % instead of 8", ((cast(*void)(*instance.fd_array)) - cast(*void)(*instance)));
+        assert(size_of(type_of(fd_set.fd_array)) == 512, "fd_set.fd_array has unexpected size % instead of 512", size_of(type_of(fd_set.fd_array)));
+        assert(size_of(fd_set) == 520, "fd_set has size % instead of 520", size_of(fd_set));
+    }
+
     {
         instance: ENetBuffer;
         assert(((cast(*void)(*instance.dataLength)) - cast(*void)(*instance)) == 0, "ENetBuffer.dataLength has unexpected offset % instead of 0", ((cast(*void)(*instance.dataLength)) - cast(*void)(*instance)));

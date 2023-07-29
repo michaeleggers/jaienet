@@ -1,5 +1,6 @@
 generate.jai
 **/*.exe
+**/*.dll
 **/*.pdb
 **/.build/*
 **/win/*
