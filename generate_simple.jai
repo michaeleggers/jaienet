@@ -98,6 +98,7 @@ generate_bindings :: () -> bool {
             array_add(*libpaths,       "win");
             array_add(*libnames,       "winmm");
             array_add(*libnames,       "ws2_32");
+            // TODO(Michael): Is there a better way to define those symbols?
             array_add(*system_types_to_include, "size_t");
             array_add(*system_types_to_include, "fd_set");
             array_add(*system_types_to_include, "SOCKET");            
@@ -128,11 +129,25 @@ generate_bindings :: () -> bool {
         array_add(*extra_clang_arguments, "-x", "c", "-DWIN32_LEAN_AND_MEAN");
 
         // strip_flags &= ~(Strip_Flags.CONSTRUCTORS | .DESTRUCTORS);
+        visitor = enet_visitor;
     }
 
     return generate_bindings(opts, output_filename);
 }
 
+enet_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration_Visit_Result {
+
+    // enet library mixes internal functions and functions to be exported to DLL in the same file (enet.h).
+    // Internal functions are not declared with ENET_API. That means the generator finds symbols in the header
+    // not present in the DLL/LIB. The following piece of code searches for those functions
+    // and does not put them into the jai-binding.
+    if decl.kind == .FUNCTION && decl.library == null {
+        print("Omit internal function: %\n", decl.name);
+        decl.decl_flags |= .OMIT_FROM_OUTPUT;
+    }
+
+    return .STOP;
+}
 
 #scope_file
 

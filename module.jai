@@ -277,34 +277,13 @@ _ENetList :: struct {
 
 ENetList :: _ENetList;
 
-enet_list_clear :: (unknown0: *ENetList) -> void #foreign enet;
-
-enet_list_insert :: (unknown0: ENetListIterator, unknown1: *void) -> ENetListIterator #foreign enet;
-enet_list_remove :: (unknown0: ENetListIterator) -> *void #foreign enet;
-enet_list_move :: (unknown0: ENetListIterator, unknown1: *void, unknown2: *void) -> ENetListIterator #foreign enet;
-
-enet_list_size :: (unknown0: *ENetList) -> size_t #foreign enet;
-
-// #ifdef _WIN32
-//     #include "win32.h"
-// #endif
 _ENetCallbacks :: struct {
     malloc:    #type (size: size_t) -> *void #c_call;
     free:      #type (memory: *void) -> void #c_call;
     no_memory: #type () -> void #c_call;
 }
 
-// #ifdef _WIN32
-//     #include "win32.h"
-// #endif
 ENetCallbacks :: _ENetCallbacks;
-
-/** @defgroup callbacks ENet internal callbacks
-@{
-@ingroup private
-*/
-enet_malloc :: (unknown0: size_t) -> *void #foreign enet;
-enet_free :: (unknown0: *void) -> void #foreign enet;
 
 ENetVersion :: enet_uint32;
 
@@ -976,9 +955,6 @@ enet_host_compress :: (unknown0: *ENetHost, unknown1: *ENetCompressor) -> void #
 enet_host_compress_with_range_coder :: (host: *ENetHost) -> s32 #foreign enet;
 enet_host_channel_limit :: (unknown0: *ENetHost, unknown1: size_t) -> void #foreign enet;
 enet_host_bandwidth_limit :: (unknown0: *ENetHost, unknown1: enet_uint32, unknown2: enet_uint32) -> void #foreign enet;
-enet_host_bandwidth_throttle :: (unknown0: *ENetHost) -> void #foreign enet;
-enet_host_random_seed :: () -> enet_uint32 #foreign enet;
-enet_host_random :: (unknown0: *ENetHost) -> enet_uint32 #foreign enet;
 
 enet_peer_send :: (unknown0: *ENetPeer, unknown1: enet_uint8, unknown2: *ENetPacket) -> s32 #foreign enet;
 enet_peer_receive :: (unknown0: *ENetPeer, channelID: *enet_uint8) -> *ENetPacket #foreign enet;
@@ -990,24 +966,11 @@ enet_peer_disconnect :: (unknown0: *ENetPeer, unknown1: enet_uint32) -> void #fo
 enet_peer_disconnect_now :: (unknown0: *ENetPeer, unknown1: enet_uint32) -> void #foreign enet;
 enet_peer_disconnect_later :: (unknown0: *ENetPeer, unknown1: enet_uint32) -> void #foreign enet;
 enet_peer_throttle_configure :: (unknown0: *ENetPeer, unknown1: enet_uint32, unknown2: enet_uint32, unknown3: enet_uint32) -> void #foreign enet;
-enet_peer_throttle :: (unknown0: *ENetPeer, unknown1: enet_uint32) -> s32 #foreign enet;
-enet_peer_reset_queues :: (unknown0: *ENetPeer) -> void #foreign enet;
-enet_peer_has_outgoing_commands :: (unknown0: *ENetPeer) -> s32 #foreign enet;
-enet_peer_setup_outgoing_command :: (unknown0: *ENetPeer, unknown1: *ENetOutgoingCommand) -> void #foreign enet;
-enet_peer_queue_outgoing_command :: (unknown0: *ENetPeer, unknown1: *ENetProtocol, unknown2: *ENetPacket, unknown3: enet_uint32, unknown4: enet_uint16) -> *ENetOutgoingCommand #foreign enet;
-enet_peer_queue_incoming_command :: (unknown0: *ENetPeer, unknown1: *ENetProtocol, unknown2: *void, unknown3: size_t, unknown4: enet_uint32, unknown5: enet_uint32) -> *ENetIncomingCommand #foreign enet;
-enet_peer_queue_acknowledgement :: (unknown0: *ENetPeer, unknown1: *ENetProtocol, unknown2: enet_uint16) -> *ENetAcknowledgement #foreign enet;
-enet_peer_dispatch_incoming_unreliable_commands :: (unknown0: *ENetPeer, unknown1: *ENetChannel, unknown2: *ENetIncomingCommand) -> void #foreign enet;
-enet_peer_dispatch_incoming_reliable_commands :: (unknown0: *ENetPeer, unknown1: *ENetChannel, unknown2: *ENetIncomingCommand) -> void #foreign enet;
-enet_peer_on_connect :: (unknown0: *ENetPeer) -> void #foreign enet;
-enet_peer_on_disconnect :: (unknown0: *ENetPeer) -> void #foreign enet;
 
 enet_range_coder_create :: () -> *void #foreign enet;
 enet_range_coder_destroy :: (unknown0: *void) -> void #foreign enet;
 enet_range_coder_compress :: (unknown0: *void, unknown1: *ENetBuffer, unknown2: size_t, unknown3: size_t, unknown4: *enet_uint8, unknown5: size_t) -> size_t #foreign enet;
 enet_range_coder_decompress :: (unknown0: *void, unknown1: *enet_uint8, unknown2: size_t, unknown3: *enet_uint8, unknown4: size_t) -> size_t #foreign enet;
-
-enet_protocol_command_size :: (unknown0: enet_uint8) -> size_t #foreign enet;
 
 #scope_file
 
