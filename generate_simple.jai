@@ -50,7 +50,6 @@ generate_bindings :: () -> bool {
         make_directory_if_it_does_not_exist("win");
         success := true;
         success &&= build_cpp_dynamic_lib("win/enet", ..enet_src_files, extra = .["/DENET_DLL", "/DENET_BUILDING_LIB", "/Ienet/include", "winmm.lib", "ws2_32.lib"], debug=true);        
-
         // success &&= build_cpp_static_lib("win/enet", ..enet_src_files, extra = .["/Ienet/include"], debug=true);
         
         // if !success {
@@ -119,7 +118,7 @@ generate_bindings :: () -> bool {
         }
 
         // array_add(*include_paths, ENET_PATH);        
-        array_add(*include_paths, "enet/include/enet");
+        array_add(*include_paths, "enet/include/");
         array_add(*include_paths, "win");
         array_add(*include_paths, ".");
         array_add(*libnames,      "enet");        

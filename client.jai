@@ -39,6 +39,8 @@ main :: () {
         exit(-1);
     }
 
+    enet_peer_reset_queues (peer);
+
     if enet_host_service(client, *event, 5000) > 0 &&
         event.type == .ENET_EVENT_TYPE_CONNECT
     {
