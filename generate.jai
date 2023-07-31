@@ -8,6 +8,7 @@
 // Config
 AT_COMPILE_TIME :: true;
 COMPILE :: true;
+DEBUG_BUILD :: true;
 ENET_PATH :: "src/enet";
 
 
@@ -52,8 +53,8 @@ generate_bindings :: () -> bool {
         make_directory_if_it_does_not_exist("win");
         success := true;
         #if OS == .WINDOWS {
-            success &&= build_cpp_dynamic_lib("win/enet", ..enet_src_files, extra = .["/DENET_DLL", "/DENET_BUILDING_LIB", "/Isrc/enet/include", "winmm.lib", "ws2_32.lib"], debug=true);        
-            success &&= build_cpp_static_lib("win/enet", ..enet_src_files, extra = .["/Isrc/enet/include"], debug=true);        
+            success &&= build_cpp_dynamic_lib("win/enet", ..enet_src_files, extra = .["/DENET_DLL", "/DENET_BUILDING_LIB", "/Isrc/enet/include", "winmm.lib", "ws2_32.lib"], debug=DEBUG_BUILD);        
+            success &&= build_cpp_static_lib("win/enet", ..enet_src_files, extra = .["/Isrc/enet/include"], debug=DEBUG_BUILD);        
         } else #if OS == .LINUX {
             print("Not implemented\n");
             return false;
