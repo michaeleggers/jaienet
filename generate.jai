@@ -6,7 +6,7 @@
 
 
 // Config
-AT_COMPILE_TIME :: false;
+AT_COMPILE_TIME :: true;
 COMPILE :: true;
 ENET_PATH :: "src/enet";
 
