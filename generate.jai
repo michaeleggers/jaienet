@@ -1,12 +1,14 @@
-// This is just a small example of compiling a C++ library, generating bindings for it and using them.
-// Look at modules/ImGui/generate.jai or modules/d3d11/generate.jai
-// for more comprehensive examples of how to use the bindings generator.
+// MIT License - Copyright (c) 2023 Michael Eggers
+// Bindings generator for enet: https://github.com/lsalzman/enet
+// Tested with enet git-commit hash: 2a85cd64459f6ba038d233a634d9440490dbba12
+// Currently tested only on Windows.
+// Set the ENET_PATH to the location of your enet install.
 
 
-AT_COMPILE_TIME :: true;
+// Config
+AT_COMPILE_TIME :: false;
 COMPILE :: true;
-
-ENET_PATH :: "enet";
+ENET_PATH :: "src/enet";
 
 
 #if AT_COMPILE_TIME {
@@ -30,7 +32,7 @@ ENET_PATH :: "enet";
 }
 
 generate_bindings :: () -> bool {
-    #if COMPILE {
+    #if COMPILE && AT_COMPILE_TIME {
         set_build_options_dc(.{do_output=false});
         // set_build_options_dc(.{append_linker_arguments=.["/link winm.lib"]});
 
@@ -49,18 +51,16 @@ generate_bindings :: () -> bool {
         options := get_build_options();
         make_directory_if_it_does_not_exist("win");
         success := true;
-        success &&= build_cpp_dynamic_lib("win/enet", ..enet_src_files, extra = .["/DENET_DLL", "/DENET_BUILDING_LIB", "/Ienet/include", "winmm.lib", "ws2_32.lib"], debug=true);        
-        // success &&= build_cpp_static_lib("win/enet", ..enet_src_files, extra = .["/Ienet/include"], debug=true);
-        
-        // if !success {
-        //     compiler_set_workspace_status(.FAILED);
-        //     return success;
-        // }
-
-        // if !generate_bindings() {
-        //     compiler_set_workspace_status(.FAILED);
-        //     return;
-        // }
+        #if OS == .WINDOWS {
+            success &&= build_cpp_dynamic_lib("win/enet", ..enet_src_files, extra = .["/DENET_DLL", "/DENET_BUILDING_LIB", "/Isrc/enet/include", "winmm.lib", "ws2_32.lib"], debug=true);        
+            success &&= build_cpp_static_lib("win/enet", ..enet_src_files, extra = .["/Isrc/enet/include"], debug=true);        
+        } else #if OS == .LINUX {
+            print("Not implemented\n");
+            return false;
+        } else #if OS == .MACOS {
+            print("Not implemented\n");
+            return false;
+        }        
 
         w := compiler_create_workspace("Main program");
         
@@ -99,12 +99,10 @@ generate_bindings :: () -> bool {
             array_add(*libnames,       "winmm");
             array_add(*libnames,       "ws2_32");
             // TODO(Michael): Is there a better way to define those symbols?
-            array_add(*system_types_to_include, "size_t");
             array_add(*system_types_to_include, "fd_set");
             array_add(*system_types_to_include, "SOCKET");            
             // array_add(*path_fragments_to_treat_as_non_system_paths, "winsock2.h");
             // array_add(*path_fragments_to_treat_as_non_system_paths, "winsock.h");
-
             strip_flags = 0;
         } else #if OS == .LINUX {
             output_filename          = "linux.jai";
@@ -119,7 +117,7 @@ generate_bindings :: () -> bool {
         }
 
         // array_add(*include_paths, ENET_PATH);        
-        array_add(*include_paths, "enet/include/");
+        array_add(*include_paths, "src/enet/include/");
         array_add(*include_paths, "win");
         array_add(*include_paths, ".");
         array_add(*libnames,      "enet");        
@@ -135,6 +133,8 @@ generate_bindings :: () -> bool {
     return generate_bindings(opts, output_filename);
 }
 
+// foo :: #type (u32) -> u32;
+
 enet_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration_Visit_Result {
 
     // enet library mixes internal functions and functions to be exported to DLL in the same file (enet.h).
@@ -146,11 +146,31 @@ enet_visitor :: (decl: *Declaration, parent_decl: *Declaration) -> Declaration_V
         decl.decl_flags |= .OMIT_FROM_OUTPUT;
     }
 
+    // The following is cosmetic: It replaces size_t with u64. But something like
+    // size_t :: u64 in the module doesn't hurt because modules are hermetic. It
+    // won't clash with names in Application scope.
+    // Also, on other platforms size_t might not be u64, so this might even
+    // be dangerous to do. I did it anyway because I wanted to see what I can
+    // do here. If this is a problem, just whitelist size_t, like eg. 'SOCKET', I guess...
+    if decl.kind == .FUNCTION {
+        name := decl.name;
+        args := decl.type.type_of_function.arguments;        
+        for arg : args {
+            type_of_typedef := arg.type.type_of_typedef;
+            if type_of_typedef {                
+                if !compare(type_of_typedef.output_name, "size_t") {
+                    type_of_typedef.output_name = "u64";
+                }        
+            }
+        }        
+    }
+
     return .STOP;
 }
 
 #scope_file
 
+#import "String";
 #import "System";
 #import "Basic";
 #import "Compiler";

@@ -1,5 +1,5 @@
 #import "Basic";
-#import,dir "jaienet";
+#import,dir "enet";
 
 client : *ENetHost;
 

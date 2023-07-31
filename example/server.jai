@@ -1,7 +1,7 @@
 #import "Basic";
 // #import "Windows";
 // #import "Socket";
-#import,dir "jaienet";
+#import,dir "enet";
 
 
 address : ENetAddress;

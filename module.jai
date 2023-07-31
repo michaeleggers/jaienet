@@ -1,7 +1,7 @@
 //
 // This file was auto-generated using the following command:
 //
-// jai generate_simple.jai
+// generate.exe
 //
 
 
@@ -14,8 +14,6 @@ ENET_HOST_ANY :: 0;
 ENET_HOST_BROADCAST :: 0xFFFFFFFF;
 ENET_PORT_ANY :: 0;
 
-size_t :: u64;
-
 SOCKET :: u64;
 
 fd_set :: struct {
@@ -26,7 +24,7 @@ fd_set :: struct {
 ENetSocket :: SOCKET;
 
 ENetBuffer :: struct {
-    dataLength: size_t;
+    dataLength: u64;
     data:       *void;
 }
 
@@ -278,7 +276,7 @@ _ENetList :: struct {
 ENetList :: _ENetList;
 
 _ENetCallbacks :: struct {
-    malloc:    #type (size: size_t) -> *void #c_call;
+    malloc:    #type (size: u64) -> *void #c_call;
     free:      #type (memory: *void) -> void #c_call;
     no_memory: #type () -> void #c_call;
 }
@@ -444,10 +442,10 @@ ENetPacketFreeCallback :: #type (unknown0: *_ENetPacket) -> void #c_call;
 @sa ENetPacketFlag
 */
 _ENetPacket :: struct {
-    referenceCount: size_t; /**< internal use only */
+    referenceCount: u64; /**< internal use only */
     flags:          enet_uint32; /**< bitwise-or of ENetPacketFlag constants */
     data:           *enet_uint8; /**< allocated data for packet */
-    dataLength:     size_t; /**< length of data */
+    dataLength:     u64; /**< length of data */
     freeCallback:   ENetPacketFreeCallback; /**< function to be called when the packet is no longer in use */
     userData:       *void; /**< application private data, may be freely modified */
 }
@@ -638,7 +636,7 @@ _ENetPeer :: struct {
     data:                           *void; /**< Application private data, may be freely modified */
     state:                          ENetPeerState;
     channels:                       *ENetChannel;
-    channelCount:                   size_t; /**< Number of channels allocated for communication with peer */
+    channelCount:                   u64; /**< Number of channels allocated for communication with peer */
     incomingBandwidth:              enet_uint32; /**< Downstream bandwidth of the client in bytes/second */
     outgoingBandwidth:              enet_uint32; /**< Upstream bandwidth of the client in bytes/second */
     incomingBandwidthThrottleEpoch: enet_uint32;
@@ -686,7 +684,7 @@ _ENetPeer :: struct {
     outgoingUnsequencedGroup:       enet_uint16;
     unsequencedWindow:              [32] enet_uint32;
     eventData:                      enet_uint32;
-    totalWaitingData:               size_t;
+    totalWaitingData:               u64;
 }
 
 /**
@@ -703,10 +701,10 @@ _ENetCompressor :: struct {
     _context:   *void;
 
     /** Compresses from inBuffers[0:inBufferCount-1], containing inLimit bytes, to outData, outputting at most outLimit bytes. Should return 0 on failure. */
-    compress:   #type (_context: *void, inBuffers: *ENetBuffer, inBufferCount: size_t, inLimit: size_t, outData: *enet_uint8, outLimit: size_t) -> size_t #c_call;
+    compress:   #type (_context: *void, inBuffers: *ENetBuffer, inBufferCount: u64, inLimit: u64, outData: *enet_uint8, outLimit: u64) -> u64 #c_call;
 
     /** Decompresses from inData, containing inLimit bytes, to outData, outputting at most outLimit bytes. Should return 0 on failure. */
-    decompress: #type (_context: *void, inData: *enet_uint8, inLimit: size_t, outData: *enet_uint8, outLimit: size_t) -> size_t #c_call;
+    decompress: #type (_context: *void, inData: *enet_uint8, inLimit: u64, outData: *enet_uint8, outLimit: u64) -> u64 #c_call;
 
     /** Destroys the context when compression is disabled or the host is destroyed. May be NULL. */
     destroy:    #type (_context: *void) -> void #c_call;
@@ -717,7 +715,7 @@ _ENetCompressor :: struct {
 ENetCompressor :: _ENetCompressor;
 
 /** Callback that computes the checksum of the data held in buffers[0:bufferCount-1] */
-ENetChecksumCallback :: #type (buffers: *ENetBuffer, bufferCount: size_t) -> enet_uint32 #c_call;
+ENetChecksumCallback :: #type (buffers: *ENetBuffer, bufferCount: u64) -> enet_uint32 #c_call;
 
 /** Callback for intercepting received raw UDP packets. Should return 1 to intercept, 0 to ignore, or -1 to propagate an error. */
 ENetInterceptCallback :: #type (host: *_ENetHost, event: *_ENetEvent) -> s32 #c_call;
@@ -748,33 +746,33 @@ _ENetHost :: struct {
     randomSeed:                 enet_uint32;
     recalculateBandwidthLimits: s32;
     peers:                      *ENetPeer; /**< array of peers allocated for this host */
-    peerCount:                  size_t; /**< number of peers allocated for this host */
-    channelLimit:               size_t; /**< maximum number of channels allowed for connected peers */
+    peerCount:                  u64; /**< number of peers allocated for this host */
+    channelLimit:               u64; /**< maximum number of channels allowed for connected peers */
     serviceTime:                enet_uint32;
     dispatchQueue:              ENetList;
     totalQueued:                enet_uint32;
-    packetSize:                 size_t;
+    packetSize:                 u64;
     headerFlags:                enet_uint16;
     commands:                   [32] ENetProtocol #align 2;
-    commandCount:               size_t;
+    commandCount:               u64;
     buffers:                    [65] ENetBuffer;
-    bufferCount:                size_t;
+    bufferCount:                u64;
     checksum:                   ENetChecksumCallback; /**< callback the user can set to enable packet checksums for this host */
     compressor:                 ENetCompressor;
     packetData:                 [2] [4096] enet_uint8;
     receivedAddress:            ENetAddress;
     receivedData:               *enet_uint8;
-    receivedDataLength:         size_t;
+    receivedDataLength:         u64;
     totalSentData:              enet_uint32; /**< total data sent, user should reset to 0 as needed to prevent overflow */
     totalSentPackets:           enet_uint32; /**< total UDP packets sent, user should reset to 0 as needed to prevent overflow */
     totalReceivedData:          enet_uint32; /**< total data received, user should reset to 0 as needed to prevent overflow */
     totalReceivedPackets:       enet_uint32; /**< total UDP packets received, user should reset to 0 as needed to prevent overflow */
     intercept:                  ENetInterceptCallback; /**< callback the user can set to intercept received raw UDP packets */
-    connectedPeers:             size_t;
-    bandwidthLimitedPeers:      size_t;
-    duplicatePeers:             size_t; /**< optional number of allowed peers from duplicate IPs, defaults to ENET_PROTOCOL_MAXIMUM_PEER_ID */
-    maximumPacketSize:          size_t; /**< the maximum allowable packet size that may be sent or received on a peer */
-    maximumWaitingData:         size_t; /**< the maximum aggregate amount of buffer space a peer may use waiting for packets to be delivered */
+    connectedPeers:             u64;
+    bandwidthLimitedPeers:      u64;
+    duplicatePeers:             u64; /**< optional number of allowed peers from duplicate IPs, defaults to ENET_PROTOCOL_MAXIMUM_PEER_ID */
+    maximumPacketSize:          u64; /**< the maximum allowable packet size that may be sent or received on a peer */
+    maximumWaitingData:         u64; /**< the maximum aggregate amount of buffer space a peer may use waiting for packets to be delivered */
 }
 
 /** An ENet host for communicating with peers.
@@ -889,8 +887,8 @@ enet_socket_get_address :: (unknown0: ENetSocket, unknown1: *ENetAddress) -> s32
 enet_socket_listen :: (unknown0: ENetSocket, unknown1: s32) -> s32 #foreign enet;
 enet_socket_accept :: (unknown0: ENetSocket, unknown1: *ENetAddress) -> ENetSocket #foreign enet;
 enet_socket_connect :: (unknown0: ENetSocket, unknown1: *ENetAddress) -> s32 #foreign enet;
-enet_socket_send :: (unknown0: ENetSocket, unknown1: *ENetAddress, unknown2: *ENetBuffer, unknown3: size_t) -> s32 #foreign enet;
-enet_socket_receive :: (unknown0: ENetSocket, unknown1: *ENetAddress, unknown2: *ENetBuffer, unknown3: size_t) -> s32 #foreign enet;
+enet_socket_send :: (unknown0: ENetSocket, unknown1: *ENetAddress, unknown2: *ENetBuffer, unknown3: u64) -> s32 #foreign enet;
+enet_socket_receive :: (unknown0: ENetSocket, unknown1: *ENetAddress, unknown2: *ENetBuffer, unknown3: u64) -> s32 #foreign enet;
 enet_socket_wait :: (unknown0: ENetSocket, unknown1: *enet_uint32, unknown2: enet_uint32) -> s32 #foreign enet;
 enet_socket_set_option :: (unknown0: ENetSocket, unknown1: ENetSocketOption, unknown2: s32) -> s32 #foreign enet;
 enet_socket_get_option :: (unknown0: ENetSocket, unknown1: ENetSocketOption, unknown2: *s32) -> s32 #foreign enet;
@@ -926,7 +924,7 @@ enet_address_set_host :: (address: *ENetAddress, hostName: *u8) -> s32 #foreign 
 @retval 0 on success
 @retval < 0 on failure
 */
-enet_address_get_host_ip :: (address: *ENetAddress, hostName: *u8, nameLength: size_t) -> s32 #foreign enet;
+enet_address_get_host_ip :: (address: *ENetAddress, hostName: *u8, nameLength: u64) -> s32 #foreign enet;
 
 /** Attempts to do a reverse lookup of the host field in the address parameter.
 @param address    address used for reverse lookup
@@ -936,24 +934,24 @@ enet_address_get_host_ip :: (address: *ENetAddress, hostName: *u8, nameLength: s
 @retval 0 on success
 @retval < 0 on failure
 */
-enet_address_get_host :: (address: *ENetAddress, hostName: *u8, nameLength: size_t) -> s32 #foreign enet;
+enet_address_get_host :: (address: *ENetAddress, hostName: *u8, nameLength: u64) -> s32 #foreign enet;
 
 /** @} */
-enet_packet_create :: (unknown0: *void, unknown1: size_t, unknown2: enet_uint32) -> *ENetPacket #foreign enet;
+enet_packet_create :: (unknown0: *void, unknown1: u64, unknown2: enet_uint32) -> *ENetPacket #foreign enet;
 enet_packet_destroy :: (unknown0: *ENetPacket) -> void #foreign enet;
-enet_packet_resize :: (unknown0: *ENetPacket, unknown1: size_t) -> s32 #foreign enet;
-enet_crc32 :: (unknown0: *ENetBuffer, unknown1: size_t) -> enet_uint32 #foreign enet;
+enet_packet_resize :: (unknown0: *ENetPacket, unknown1: u64) -> s32 #foreign enet;
+enet_crc32 :: (unknown0: *ENetBuffer, unknown1: u64) -> enet_uint32 #foreign enet;
 
-enet_host_create :: (unknown0: *ENetAddress, unknown1: size_t, unknown2: size_t, unknown3: enet_uint32, unknown4: enet_uint32) -> *ENetHost #foreign enet;
+enet_host_create :: (unknown0: *ENetAddress, unknown1: u64, unknown2: u64, unknown3: enet_uint32, unknown4: enet_uint32) -> *ENetHost #foreign enet;
 enet_host_destroy :: (unknown0: *ENetHost) -> void #foreign enet;
-enet_host_connect :: (unknown0: *ENetHost, unknown1: *ENetAddress, unknown2: size_t, unknown3: enet_uint32) -> *ENetPeer #foreign enet;
+enet_host_connect :: (unknown0: *ENetHost, unknown1: *ENetAddress, unknown2: u64, unknown3: enet_uint32) -> *ENetPeer #foreign enet;
 enet_host_check_events :: (unknown0: *ENetHost, unknown1: *ENetEvent) -> s32 #foreign enet;
 enet_host_service :: (unknown0: *ENetHost, unknown1: *ENetEvent, unknown2: enet_uint32) -> s32 #foreign enet;
 enet_host_flush :: (unknown0: *ENetHost) -> void #foreign enet;
 enet_host_broadcast :: (unknown0: *ENetHost, unknown1: enet_uint8, unknown2: *ENetPacket) -> void #foreign enet;
 enet_host_compress :: (unknown0: *ENetHost, unknown1: *ENetCompressor) -> void #foreign enet;
 enet_host_compress_with_range_coder :: (host: *ENetHost) -> s32 #foreign enet;
-enet_host_channel_limit :: (unknown0: *ENetHost, unknown1: size_t) -> void #foreign enet;
+enet_host_channel_limit :: (unknown0: *ENetHost, unknown1: u64) -> void #foreign enet;
 enet_host_bandwidth_limit :: (unknown0: *ENetHost, unknown1: enet_uint32, unknown2: enet_uint32) -> void #foreign enet;
 
 enet_peer_send :: (unknown0: *ENetPeer, unknown1: enet_uint8, unknown2: *ENetPacket) -> s32 #foreign enet;
@@ -969,8 +967,8 @@ enet_peer_throttle_configure :: (unknown0: *ENetPeer, unknown1: enet_uint32, unk
 
 enet_range_coder_create :: () -> *void #foreign enet;
 enet_range_coder_destroy :: (unknown0: *void) -> void #foreign enet;
-enet_range_coder_compress :: (unknown0: *void, unknown1: *ENetBuffer, unknown2: size_t, unknown3: size_t, unknown4: *enet_uint8, unknown5: size_t) -> size_t #foreign enet;
-enet_range_coder_decompress :: (unknown0: *void, unknown1: *enet_uint8, unknown2: size_t, unknown3: *enet_uint8, unknown4: size_t) -> size_t #foreign enet;
+enet_range_coder_compress :: (unknown0: *void, unknown1: *ENetBuffer, unknown2: u64, unknown3: u64, unknown4: *enet_uint8, unknown5: u64) -> u64 #foreign enet;
+enet_range_coder_decompress :: (unknown0: *void, unknown1: *enet_uint8, unknown2: u64, unknown3: *enet_uint8, unknown4: u64) -> u64 #foreign enet;
 
 #scope_file
 
