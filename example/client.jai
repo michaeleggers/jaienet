@@ -39,8 +39,6 @@ main :: () {
         exit(-1);
     }
 
-    // enet_peer_reset_queues (peer); // Actually a function internal to enet library! Not suppsed to be called by the user.
-
     if enet_host_service(client, *event, 5000) > 0 &&
         event.type == .ENET_EVENT_TYPE_CONNECT
     {
