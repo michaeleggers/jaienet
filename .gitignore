@@ -8,3 +8,9 @@ msvc.bat
 Command Prompt.lnk
 desktop.ini
 module.jai
+
+**/*.dSYM
+**/*.DS_Store
+**/macos/*
+**/client
+**/server

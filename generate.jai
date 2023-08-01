@@ -7,10 +7,12 @@
 
 // Config
 AT_COMPILE_TIME :: true;
-COMPILE :: true;
-DEBUG_BUILD :: true;
-ENET_PATH :: "src/enet";
+COMPILE         :: true;
+DEBUG_BUILD     :: true;
 
+ENET_PATH       :: "src/enet";
+
+MACOS_MIN_VERSION :: "10.14";
 
 #if AT_COMPILE_TIME {
     #run {        
@@ -44,23 +46,26 @@ generate_bindings :: () -> bool {
         array_add(*enet_src_files, tprint("%/list.c", ENET_PATH));
         array_add(*enet_src_files, tprint("%/packet.c", ENET_PATH));
         array_add(*enet_src_files, tprint("%/peer.c", ENET_PATH));
-        array_add(*enet_src_files, tprint("%/protocol.c", ENET_PATH));
-        array_add(*enet_src_files, tprint("%/win32.c", ENET_PATH));
-        array_add(*enet_src_files, tprint("%/unix.c", ENET_PATH));
+        array_add(*enet_src_files, tprint("%/protocol.c", ENET_PATH));        
+        
         // array_add(*enet_src_files, "winmm.lib");
 
         options := get_build_options();
-        make_directory_if_it_does_not_exist("win");
         success := true;
         #if OS == .WINDOWS {
+            make_directory_if_it_does_not_exist("win");
+            array_add(*enet_src_files, tprint("%/win32.c", ENET_PATH));
             success &&= build_cpp_dynamic_lib("win/enet", ..enet_src_files, extra = .["/DENET_DLL", "/DENET_BUILDING_LIB", "/Isrc/enet/include", "winmm.lib", "ws2_32.lib"], debug=DEBUG_BUILD);        
             success &&= build_cpp_static_lib("win/enet", ..enet_src_files, extra = .["/Isrc/enet/include"], debug=DEBUG_BUILD);        
         } else #if OS == .LINUX {
             print("Not implemented\n");
             return false;
         } else #if OS == .MACOS {
-            print("Not implemented\n");
-            return false;
+            make_directory_if_it_does_not_exist("macos");
+            array_add(*enet_src_files, tprint("%/unix.c", ENET_PATH));
+            MACOS_VERSION_ARG :: #run tprint("-mmacosx-version-min=%", MACOS_MIN_VERSION);
+            success &&= build_cpp_dynamic_lib("macos/enet", ..enet_src_files, extra = .["-DENET_DLL", "-DENET_BUILDING_LIB", "-Isrc/enet/include", MACOS_VERSION_ARG], debug=DEBUG_BUILD);        
+            success &&= build_cpp_static_lib("macos/enet", ..enet_src_files, extra = .["-Isrc/enet/include", MACOS_VERSION_ARG], debug=DEBUG_BUILD);        
         }        
 
         w := compiler_create_workspace("Main program");
@@ -93,25 +98,28 @@ generate_bindings :: () -> bool {
     opts: Generate_Bindings_Options;
     {
         using opts;
+        array_add(*system_types_to_include, "fd_set");
 
         #if OS == .WINDOWS {
-            output_filename          = "module.jai";
+            output_filename          = "windows.jai";
+            array_add(*include_paths,  "win");
             array_add(*libpaths,       "win");
             array_add(*libnames,       "winmm");
             array_add(*libnames,       "ws2_32");
             // TODO(Michael): Is there a better way to define those symbols?
-            array_add(*system_types_to_include, "fd_set");
-            array_add(*system_types_to_include, "SOCKET");            
+            array_add(*system_types_to_include, "SOCKET");   
+            array_add(*extra_clang_arguments, "-x", "c", "-DWIN32_LEAN_AND_MEAN");         
             // array_add(*path_fragments_to_treat_as_non_system_paths, "winsock2.h");
             // array_add(*path_fragments_to_treat_as_non_system_paths, "winsock.h");
             strip_flags = 0;
         } else #if OS == .LINUX {
-            output_filename          = "linux.jai";
+            output_filename          = "unix.jai";
             strip_flags = .INLINED_FUNCTIONS; // Inlined constructor doesn't exist in the library
         } else #if OS == .MACOS {
             // @ToDo: Determine dynamically? Customize?
+            output_filename          = "unix.jai";
+            array_add(*libpaths,       "macos");
             array_add(*system_include_paths, "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include");
-            output_filename          = "macos.jai";
             strip_flags = .INLINED_FUNCTIONS; // Inlined constructor doesn't exist in the library
         } else {
             assert(false);
@@ -119,13 +127,10 @@ generate_bindings :: () -> bool {
 
         // array_add(*include_paths, ENET_PATH);        
         array_add(*include_paths, "src/enet/include/");
-        array_add(*include_paths, "win");
         array_add(*include_paths, ".");
         array_add(*libnames,      "enet");        
-
         array_add(*system_include_paths, GENERATOR_DEFAULT_SYSTEM_INCLUDE_PATH);                
         array_add(*source_files,  tprint("%/include/enet/enet.h", ENET_PATH));
-        array_add(*extra_clang_arguments, "-x", "c", "-DWIN32_LEAN_AND_MEAN");
 
         // strip_flags &= ~(Strip_Flags.CONSTRUCTORS | .DESTRUCTORS);
         visitor = enet_visitor;
