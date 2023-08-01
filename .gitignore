@@ -12,3 +12,5 @@ module.jai
 **/*.dSYM
 **/*.DS_Store
 **/macos/*
+**/client
+**/server
