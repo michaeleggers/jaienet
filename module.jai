@@ -6,6 +6,8 @@
 
 
 
+ENET_SOCKET_NULL :: -1;
+
 ENET_VERSION_MAJOR :: 1;
 ENET_VERSION_MINOR :: 3;
 ENET_VERSION_PATCH :: 17;
@@ -14,18 +16,15 @@ ENET_HOST_ANY :: 0;
 ENET_HOST_BROADCAST :: 0xFFFFFFFF;
 ENET_PORT_ANY :: 0;
 
-SOCKET :: u64;
-
 fd_set :: struct {
-    fd_count: u32;
-    fd_array: [64] SOCKET;
+    fds_bits: [32] s32;
 }
 
-ENetSocket :: SOCKET;
+ENetSocket :: s32;
 
 ENetBuffer :: struct {
-    dataLength: u64;
     data:       *void;
+    dataLength: u64;
 }
 
 ENetSocketSet :: fd_set;
@@ -34,7 +33,7 @@ enet_uint8 :: u8;
 enet_uint16 :: u16;
 enet_uint32 :: u32;
 
-ENET_PROTOCOL :: enum s32 {
+ENET_PROTOCOL :: enum u32 {
     MINIMUM_MTU             :: 576;
     MAXIMUM_MTU             :: 4096;
     MAXIMUM_PACKET_COMMANDS :: 32;
@@ -56,7 +55,7 @@ ENET_PROTOCOL :: enum s32 {
     ENET_PROTOCOL_MAXIMUM_FRAGMENT_COUNT  :: MAXIMUM_FRAGMENT_COUNT;
 }
 
-_ENetProtocolCommand :: enum s32 {
+_ENetProtocolCommand :: enum u32 {
     NONE                     :: 0;
     ACKNOWLEDGE              :: 1;
     CONNECT                  :: 2;
@@ -94,7 +93,7 @@ _ENetProtocolCommand :: enum s32 {
 
 ENetProtocolCommand :: _ENetProtocolCommand;
 
-_ENetProtocolFlag :: enum s32 {
+_ENetProtocolFlag :: enum u32 {
     COMMAND_FLAG_ACKNOWLEDGE :: 128;
     COMMAND_FLAG_UNSEQUENCED :: 64;
 
@@ -275,6 +274,14 @@ _ENetList :: struct {
 
 ENetList :: _ENetList;
 
+enet_list_clear :: (unknown0: *ENetList) -> void #foreign enet;
+
+enet_list_insert :: (unknown0: ENetListIterator, unknown1: *void) -> ENetListIterator #foreign enet;
+enet_list_remove :: (unknown0: ENetListIterator) -> *void #foreign enet;
+enet_list_move :: (unknown0: ENetListIterator, unknown1: *void, unknown2: *void) -> ENetListIterator #foreign enet;
+
+enet_list_size :: (unknown0: *ENetList) -> u64 #foreign enet;
+
 _ENetCallbacks :: struct {
     malloc:    #type (size: u64) -> *void #c_call;
     free:      #type (memory: *void) -> void #c_call;
@@ -283,9 +290,16 @@ _ENetCallbacks :: struct {
 
 ENetCallbacks :: _ENetCallbacks;
 
+/** @defgroup callbacks ENet internal callbacks
+@{
+@ingroup private
+*/
+enet_malloc :: (unknown0: u64) -> *void #foreign enet;
+enet_free :: (unknown0: *void) -> void #foreign enet;
+
 ENetVersion :: enet_uint32;
 
-_ENetSocketType :: enum s32 {
+_ENetSocketType :: enum u32 {
     STREAM   :: 1;
     DATAGRAM :: 2;
 
@@ -295,7 +309,7 @@ _ENetSocketType :: enum s32 {
 
 ENetSocketType :: _ENetSocketType;
 
-_ENetSocketWait :: enum s32 {
+_ENetSocketWait :: enum u32 {
     NONE      :: 0;
     SEND      :: 1;
     RECEIVE   :: 2;
@@ -309,7 +323,7 @@ _ENetSocketWait :: enum s32 {
 
 ENetSocketWait :: _ENetSocketWait;
 
-_ENetSocketOption :: enum s32 {
+_ENetSocketOption :: enum u32 {
     NONBLOCK  :: 1;
     BROADCAST :: 2;
     RCVBUF    :: 3;
@@ -335,7 +349,7 @@ _ENetSocketOption :: enum s32 {
 
 ENetSocketOption :: _ENetSocketOption;
 
-_ENetSocketShutdown :: enum s32 {
+_ENetSocketShutdown :: enum u32 {
     READ       :: 0;
     WRITE      :: 1;
     READ_WRITE :: 2;
@@ -383,7 +397,7 @@ ENetAddress :: _ENetAddress;
 
 @sa ENetPacket
 */
-_ENetPacketFlag :: enum s32 {
+_ENetPacketFlag :: enum u32 {
     RELIABLE            :: 1;
 
     UNSEQUENCED         :: 2;
@@ -512,7 +526,7 @@ _ENetIncomingCommand :: struct {
 
 ENetIncomingCommand :: _ENetIncomingCommand;
 
-_ENetPeerState :: enum s32 {
+_ENetPeerState :: enum u32 {
     DISCONNECTED             :: 0;
     CONNECTING               :: 1;
     ACKNOWLEDGING_CONNECT    :: 2;
@@ -538,7 +552,7 @@ _ENetPeerState :: enum s32 {
 
 ENetPeerState :: _ENetPeerState;
 
-ENET :: enum s32 {
+ENET :: enum u32 {
     HOST_RECEIVE_BUFFER_SIZE          :: 262144;
     HOST_SEND_BUFFER_SIZE             :: 262144;
     HOST_BANDWIDTH_THROTTLE_INTERVAL  :: 1000;
@@ -609,7 +623,7 @@ _ENetChannel :: struct {
 
 ENetChannel :: _ENetChannel;
 
-_ENetPeerFlag :: enum s32 {
+_ENetPeerFlag :: enum u32 {
     NEEDS_DISPATCH   :: 1;
     CONTINUE_SENDING :: 2;
 
@@ -796,7 +810,7 @@ ENetHost :: _ENetHost;
 /**
 * An ENet event type, as specified in @ref ENetEvent.
 */
-_ENetEventType :: enum s32 {
+_ENetEventType :: enum u32 {
     NONE       :: 0;
 
     CONNECT    :: 1;
@@ -953,6 +967,9 @@ enet_host_compress :: (unknown0: *ENetHost, unknown1: *ENetCompressor) -> void #
 enet_host_compress_with_range_coder :: (host: *ENetHost) -> s32 #foreign enet;
 enet_host_channel_limit :: (unknown0: *ENetHost, unknown1: u64) -> void #foreign enet;
 enet_host_bandwidth_limit :: (unknown0: *ENetHost, unknown1: enet_uint32, unknown2: enet_uint32) -> void #foreign enet;
+enet_host_bandwidth_throttle :: (unknown0: *ENetHost) -> void #foreign enet;
+enet_host_random_seed :: () -> enet_uint32 #foreign enet;
+enet_host_random :: (unknown0: *ENetHost) -> enet_uint32 #foreign enet;
 
 enet_peer_send :: (unknown0: *ENetPeer, unknown1: enet_uint8, unknown2: *ENetPacket) -> s32 #foreign enet;
 enet_peer_receive :: (unknown0: *ENetPeer, channelID: *enet_uint8) -> *ENetPacket #foreign enet;
@@ -964,36 +981,45 @@ enet_peer_disconnect :: (unknown0: *ENetPeer, unknown1: enet_uint32) -> void #fo
 enet_peer_disconnect_now :: (unknown0: *ENetPeer, unknown1: enet_uint32) -> void #foreign enet;
 enet_peer_disconnect_later :: (unknown0: *ENetPeer, unknown1: enet_uint32) -> void #foreign enet;
 enet_peer_throttle_configure :: (unknown0: *ENetPeer, unknown1: enet_uint32, unknown2: enet_uint32, unknown3: enet_uint32) -> void #foreign enet;
+enet_peer_throttle :: (unknown0: *ENetPeer, unknown1: enet_uint32) -> s32 #foreign enet;
+enet_peer_reset_queues :: (unknown0: *ENetPeer) -> void #foreign enet;
+enet_peer_has_outgoing_commands :: (unknown0: *ENetPeer) -> s32 #foreign enet;
+enet_peer_setup_outgoing_command :: (unknown0: *ENetPeer, unknown1: *ENetOutgoingCommand) -> void #foreign enet;
+enet_peer_queue_outgoing_command :: (unknown0: *ENetPeer, unknown1: *ENetProtocol, unknown2: *ENetPacket, unknown3: enet_uint32, unknown4: enet_uint16) -> *ENetOutgoingCommand #foreign enet;
+enet_peer_queue_incoming_command :: (unknown0: *ENetPeer, unknown1: *ENetProtocol, unknown2: *void, unknown3: u64, unknown4: enet_uint32, unknown5: enet_uint32) -> *ENetIncomingCommand #foreign enet;
+enet_peer_queue_acknowledgement :: (unknown0: *ENetPeer, unknown1: *ENetProtocol, unknown2: enet_uint16) -> *ENetAcknowledgement #foreign enet;
+enet_peer_dispatch_incoming_unreliable_commands :: (unknown0: *ENetPeer, unknown1: *ENetChannel, unknown2: *ENetIncomingCommand) -> void #foreign enet;
+enet_peer_dispatch_incoming_reliable_commands :: (unknown0: *ENetPeer, unknown1: *ENetChannel, unknown2: *ENetIncomingCommand) -> void #foreign enet;
+enet_peer_on_connect :: (unknown0: *ENetPeer) -> void #foreign enet;
+enet_peer_on_disconnect :: (unknown0: *ENetPeer) -> void #foreign enet;
 
 enet_range_coder_create :: () -> *void #foreign enet;
 enet_range_coder_destroy :: (unknown0: *void) -> void #foreign enet;
 enet_range_coder_compress :: (unknown0: *void, unknown1: *ENetBuffer, unknown2: u64, unknown3: u64, unknown4: *enet_uint8, unknown5: u64) -> u64 #foreign enet;
 enet_range_coder_decompress :: (unknown0: *void, unknown1: *enet_uint8, unknown2: u64, unknown3: *enet_uint8, unknown4: u64) -> u64 #foreign enet;
 
+enet_protocol_command_size :: (unknown0: enet_uint8) -> u64 #foreign enet;
+
 #scope_file
 
 #import "Basic"; // For assert
 
-winmm :: #system_library "winmm";
-ws2_32 :: #system_library "ws2_32";
-enet :: #library "win/enet";
+enet :: #library "macos/enet";
 
 #run {
     {
         instance: fd_set;
-        assert(((cast(*void)(*instance.fd_count)) - cast(*void)(*instance)) == 0, "fd_set.fd_count has unexpected offset % instead of 0", ((cast(*void)(*instance.fd_count)) - cast(*void)(*instance)));
-        assert(size_of(type_of(fd_set.fd_count)) == 4, "fd_set.fd_count has unexpected size % instead of 4", size_of(type_of(fd_set.fd_count)));
-        assert(((cast(*void)(*instance.fd_array)) - cast(*void)(*instance)) == 8, "fd_set.fd_array has unexpected offset % instead of 8", ((cast(*void)(*instance.fd_array)) - cast(*void)(*instance)));
-        assert(size_of(type_of(fd_set.fd_array)) == 512, "fd_set.fd_array has unexpected size % instead of 512", size_of(type_of(fd_set.fd_array)));
-        assert(size_of(fd_set) == 520, "fd_set has size % instead of 520", size_of(fd_set));
+        assert(((cast(*void)(*instance.fds_bits)) - cast(*void)(*instance)) == 0, "fd_set.fds_bits has unexpected offset % instead of 0", ((cast(*void)(*instance.fds_bits)) - cast(*void)(*instance)));
+        assert(size_of(type_of(fd_set.fds_bits)) == 128, "fd_set.fds_bits has unexpected size % instead of 128", size_of(type_of(fd_set.fds_bits)));
+        assert(size_of(fd_set) == 128, "fd_set has size % instead of 128", size_of(fd_set));
     }
 
     {
         instance: ENetBuffer;
-        assert(((cast(*void)(*instance.dataLength)) - cast(*void)(*instance)) == 0, "ENetBuffer.dataLength has unexpected offset % instead of 0", ((cast(*void)(*instance.dataLength)) - cast(*void)(*instance)));
-        assert(size_of(type_of(ENetBuffer.dataLength)) == 8, "ENetBuffer.dataLength has unexpected size % instead of 8", size_of(type_of(ENetBuffer.dataLength)));
-        assert(((cast(*void)(*instance.data)) - cast(*void)(*instance)) == 8, "ENetBuffer.data has unexpected offset % instead of 8", ((cast(*void)(*instance.data)) - cast(*void)(*instance)));
+        assert(((cast(*void)(*instance.data)) - cast(*void)(*instance)) == 0, "ENetBuffer.data has unexpected offset % instead of 0", ((cast(*void)(*instance.data)) - cast(*void)(*instance)));
         assert(size_of(type_of(ENetBuffer.data)) == 8, "ENetBuffer.data has unexpected size % instead of 8", size_of(type_of(ENetBuffer.data)));
+        assert(((cast(*void)(*instance.dataLength)) - cast(*void)(*instance)) == 8, "ENetBuffer.dataLength has unexpected offset % instead of 8", ((cast(*void)(*instance.dataLength)) - cast(*void)(*instance)));
+        assert(size_of(type_of(ENetBuffer.dataLength)) == 8, "ENetBuffer.dataLength has unexpected size % instead of 8", size_of(type_of(ENetBuffer.dataLength)));
         assert(size_of(ENetBuffer) == 16, "ENetBuffer has size % instead of 16", size_of(ENetBuffer));
     }
 
@@ -1485,20 +1511,20 @@ enet :: #library "win/enet";
     {
         instance: _ENetHost;
         assert(((cast(*void)(*instance.socket)) - cast(*void)(*instance)) == 0, "_ENetHost.socket has unexpected offset % instead of 0", ((cast(*void)(*instance.socket)) - cast(*void)(*instance)));
-        assert(size_of(type_of(_ENetHost.socket)) == 8, "_ENetHost.socket has unexpected size % instead of 8", size_of(type_of(_ENetHost.socket)));
-        assert(((cast(*void)(*instance.address)) - cast(*void)(*instance)) == 8, "_ENetHost.address has unexpected offset % instead of 8", ((cast(*void)(*instance.address)) - cast(*void)(*instance)));
+        assert(size_of(type_of(_ENetHost.socket)) == 4, "_ENetHost.socket has unexpected size % instead of 4", size_of(type_of(_ENetHost.socket)));
+        assert(((cast(*void)(*instance.address)) - cast(*void)(*instance)) == 4, "_ENetHost.address has unexpected offset % instead of 4", ((cast(*void)(*instance.address)) - cast(*void)(*instance)));
         assert(size_of(type_of(_ENetHost.address)) == 8, "_ENetHost.address has unexpected size % instead of 8", size_of(type_of(_ENetHost.address)));
-        assert(((cast(*void)(*instance.incomingBandwidth)) - cast(*void)(*instance)) == 16, "_ENetHost.incomingBandwidth has unexpected offset % instead of 16", ((cast(*void)(*instance.incomingBandwidth)) - cast(*void)(*instance)));
+        assert(((cast(*void)(*instance.incomingBandwidth)) - cast(*void)(*instance)) == 12, "_ENetHost.incomingBandwidth has unexpected offset % instead of 12", ((cast(*void)(*instance.incomingBandwidth)) - cast(*void)(*instance)));
         assert(size_of(type_of(_ENetHost.incomingBandwidth)) == 4, "_ENetHost.incomingBandwidth has unexpected size % instead of 4", size_of(type_of(_ENetHost.incomingBandwidth)));
-        assert(((cast(*void)(*instance.outgoingBandwidth)) - cast(*void)(*instance)) == 20, "_ENetHost.outgoingBandwidth has unexpected offset % instead of 20", ((cast(*void)(*instance.outgoingBandwidth)) - cast(*void)(*instance)));
+        assert(((cast(*void)(*instance.outgoingBandwidth)) - cast(*void)(*instance)) == 16, "_ENetHost.outgoingBandwidth has unexpected offset % instead of 16", ((cast(*void)(*instance.outgoingBandwidth)) - cast(*void)(*instance)));
         assert(size_of(type_of(_ENetHost.outgoingBandwidth)) == 4, "_ENetHost.outgoingBandwidth has unexpected size % instead of 4", size_of(type_of(_ENetHost.outgoingBandwidth)));
-        assert(((cast(*void)(*instance.bandwidthThrottleEpoch)) - cast(*void)(*instance)) == 24, "_ENetHost.bandwidthThrottleEpoch has unexpected offset % instead of 24", ((cast(*void)(*instance.bandwidthThrottleEpoch)) - cast(*void)(*instance)));
+        assert(((cast(*void)(*instance.bandwidthThrottleEpoch)) - cast(*void)(*instance)) == 20, "_ENetHost.bandwidthThrottleEpoch has unexpected offset % instead of 20", ((cast(*void)(*instance.bandwidthThrottleEpoch)) - cast(*void)(*instance)));
         assert(size_of(type_of(_ENetHost.bandwidthThrottleEpoch)) == 4, "_ENetHost.bandwidthThrottleEpoch has unexpected size % instead of 4", size_of(type_of(_ENetHost.bandwidthThrottleEpoch)));
-        assert(((cast(*void)(*instance.mtu)) - cast(*void)(*instance)) == 28, "_ENetHost.mtu has unexpected offset % instead of 28", ((cast(*void)(*instance.mtu)) - cast(*void)(*instance)));
+        assert(((cast(*void)(*instance.mtu)) - cast(*void)(*instance)) == 24, "_ENetHost.mtu has unexpected offset % instead of 24", ((cast(*void)(*instance.mtu)) - cast(*void)(*instance)));
         assert(size_of(type_of(_ENetHost.mtu)) == 4, "_ENetHost.mtu has unexpected size % instead of 4", size_of(type_of(_ENetHost.mtu)));
-        assert(((cast(*void)(*instance.randomSeed)) - cast(*void)(*instance)) == 32, "_ENetHost.randomSeed has unexpected offset % instead of 32", ((cast(*void)(*instance.randomSeed)) - cast(*void)(*instance)));
+        assert(((cast(*void)(*instance.randomSeed)) - cast(*void)(*instance)) == 28, "_ENetHost.randomSeed has unexpected offset % instead of 28", ((cast(*void)(*instance.randomSeed)) - cast(*void)(*instance)));
         assert(size_of(type_of(_ENetHost.randomSeed)) == 4, "_ENetHost.randomSeed has unexpected size % instead of 4", size_of(type_of(_ENetHost.randomSeed)));
-        assert(((cast(*void)(*instance.recalculateBandwidthLimits)) - cast(*void)(*instance)) == 36, "_ENetHost.recalculateBandwidthLimits has unexpected offset % instead of 36", ((cast(*void)(*instance.recalculateBandwidthLimits)) - cast(*void)(*instance)));
+        assert(((cast(*void)(*instance.recalculateBandwidthLimits)) - cast(*void)(*instance)) == 32, "_ENetHost.recalculateBandwidthLimits has unexpected offset % instead of 32", ((cast(*void)(*instance.recalculateBandwidthLimits)) - cast(*void)(*instance)));
         assert(size_of(type_of(_ENetHost.recalculateBandwidthLimits)) == 4, "_ENetHost.recalculateBandwidthLimits has unexpected size % instead of 4", size_of(type_of(_ENetHost.recalculateBandwidthLimits)));
         assert(((cast(*void)(*instance.peers)) - cast(*void)(*instance)) == 40, "_ENetHost.peers has unexpected offset % instead of 40", ((cast(*void)(*instance.peers)) - cast(*void)(*instance)));
         assert(size_of(type_of(_ENetHost.peers)) == 8, "_ENetHost.peers has unexpected size % instead of 8", size_of(type_of(_ENetHost.peers)));
